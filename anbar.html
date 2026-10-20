@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نرم‌افزار انبارداری – انبار مرکزی</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1b1f24;--mu:#6b7280;--bd:#d9dde3;--pr:#1f6feb;--ok:#16a34a;--bad:#dc2626;--warn:#fff4d6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1d2127;--tx:#e8eaed;--mu:#9aa3af;--bd:#333a44;--pr:#5a9bff;--warn:#3a3217}}
+:root[data-theme="dark"]{--bg:#14171c;--card:#1d2127;--tx:#e8eaed;--mu:#9aa3af;--bd:#333a44;--pr:#5a9bff;--warn:#3a3217}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px Tahoma,system-ui,sans-serif}
+body{padding:12px;max-width:900px;margin:auto}
+h1{font-size:18px;margin:4px 0 10px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input,select,button{font:inherit;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx)}
+button{cursor:pointer}button.p{background:var(--pr);color:#fff;border-color:var(--pr)}
+#q{flex:1;min-width:160px}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stats div{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px;text-align:center;font-size:12px;color:var(--mu)}
+.stats b{display:block;font-size:20px;color:var(--tx)}
+.it{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.it.low{background:var(--warn)}
+.nm{flex:1;min-width:0}.nm small{display:block;color:var(--mu);font-size:12px}
+.qty{font-size:18px;font-weight:bold;min-width:42px;text-align:center}
+.it button{padding:6px 11px}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);width:min(92vw,380px)}
+dialog label{display:block;margin:8px 0 3px;font-size:13px;color:var(--mu)}dialog input,dialog select{width:100%;box-sizing:border-box}
+.log{font-size:13px;color:var(--mu);padding:6px 0;border-bottom:1px solid var(--bd)}
+#st{font-size:12px;color:var(--mu);margin:6px 0}
+</style></head><body>
+<h1>📦 انبارداری انبار مرکزی</h1>
+<div class="stats"><div><b id="s1">0</b>تعداد اقلام</div><div><b id="s2">0</b>موجودی کم</div><div><b id="s3">0</b>ناموجود</div></div>
+<div class="bar"><input id="q" placeholder="جستجوی نام کالا…" type="search">
+<select id="f"><option value="">همه</option><option value="low">موجودی کم (۲ یا کمتر)</option></select></div>
+<div class="bar"><button class="p" id="add">+ کالای جدید</button><button id="log">تاریخچه</button><button id="csv">خروجی CSV</button></div>
+<div id="st"></div><div id="list"></div>
+<dialog id="dlg"><form method="dialog" id="fm"><b id="dt"></b>
+<label>نام کالا</label><input id="n"><label>واحد</label><input id="u" placeholder="عدد">
+<label>تعداد</label><input id="c" type="number" min="0"><label>موقعیت</label><input id="l">
+<div class="bar" style="margin-top:12px"><button class="p" value="ok">ذخیره</button><button value="x">انصراف</button><button type="button" id="del" style="color:var(--bad)">حذف</button></div></form></dialog>
+<dialog id="ld"><div id="lb"></div><div class="bar" style="margin-top:10px"><button onclick="ld.close()">بستن</button></div></dialog>
+<script>
+const SEED=[["دریل مگنتNITTO", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 30", "عدد", 8, "انبار مرکزی"], ["آچار یکسر رینگی 46", "عدد", 16, "انبار مرکزی"], ["پمپ کف کش", "عدد", 3, "انبار مرکزی"], ["آچار فرانسه 12", "عدد", 13, "انبار مرکزی"], ["آچار چکشی کربن شماره 55", "عدد", 14, "انبار مرکزی"], ["آچار چکشی کربن شماره 50", "عدد", 8, "انبار مرکزی"], ["آچار چکشی کربن شماره 46", "عدد", 3, "انبار مرکزی"], ["بکس فشار قوی 30", "عدد", 6, "انبار مرکزی"], ["رابط بکس", "عدد", 5, "انبار مرکزی"], ["بکس فشار قوی 46", "عدد", 3, "انبار مرکزی"], ["بکس فشار قوی 41", "عدد", 2, "انبار مرکزی"], ["بکس فشار قوی 32", "عدد", 1, "انبار مرکزی"], ["بکس فشار قوی 36", "عدد", 3, "انبار مرکزی"], ["آچار چکشی کربن شماره 36", "عدد", 12, "انبار مرکزی"], ["آچار چکشی کربن شماره 60", "عدد", 5, "انبار مرکزی"], ["آچار چکشی کربن شماره 30", "عدد", 2, "انبار مرکزی"], ["آچار چکشی برنجی شماره 42", "عدد", 4, "انبار مرکزی"], ["آچار چکشی برنجی شماره 70", "عدد", 1, "انبار مرکزی"], ["آچار چکشی کربن شماره 65", "عدد", 2, "انبار مرکزی"], ["آچار چکشی کربن شماره 41", "عدد", 6, "انبار مرکزی"], ["آچار چکشی کربن شماره 32", "عدد", 5, "انبار مرکزی"], ["آچار چکشی کربن شماره 27", "عدد", 7, "انبار مرکزی"], ["آچار چکشی کربن شماره 24", "عدد", 1, "انبار مرکزی"], ["آچار چکشی کربن شماره 40", "عدد", 2, "انبار مرکزی"], ["آچار یکسر رینگی 17", "عدد", 1, "انبار مرکزی"], ["پیچ گوشتی", "عدد", 3, "انبار مرکزی"], ["سوهان متوسط", "عدد", 2, "انبار مرکزی"], ["چکشی کربن شماره 22", "عدد", 2, "انبار مرکزی"], ["مته 4 شیار نمره 20", "عدد", 7, "انبار مرکزی"], ["مته 4 شیار نمره 12", "عدد", 3, "انبار مرکزی"], ["مته 4 شیار نمره 18", "عدد", 4, "انبار مرکزی"], ["مته 4 شیار نمره 30", "عدد", 2, "انبار مرکزی"], ["مته 4 شیار نمره 32", "عدد", 2, "انبار مرکزی"], ["مته 4 شیار نمره 40", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 22", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 26", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 25", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 8", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 8", "عدد", 1, "انبار مرکزی"], ["مته 4 شیار نمره 16", "عدد", 6, "انبار مرکزی"], ["خار جمع کن بزرگ", "عدد", 1, "انبار مرکزی"], ["پیچ گوشتی 4 سو", "عدد", 4, "انبار مرکزی"], ["پیچ گوشتی دوسو", "عدد", 4, "انبار مرکزی"], ["آچار چکشی کربن شماره 34", "عدد", 1, "انبار مرکزی"], ["ست آچار12 عددی", "ست", 1, "انبار مرکزی"], ["ست آچاراینچی", "ست", 1, "انبار مرکزی"], ["یخچال 6 فوت", "دستگاه", 15, "انبار مرکزی"], ["آچار یکسر رینگی 65", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 75", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 50", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 55", "عدد", 1, "انبار مرکزی"], ["قیچی آرماتوربری", "عدد", 1, "انبار مرکزی"], ["کولر پنجره ای جنرال", "دستگاه", 15, "انبار مرکزی"], ["آچار لوله گیر 24", "عدد", 1, "انبار مرکزی"], ["آچار لوله گیر 18", "عدد", 2, "انبار مرکزی"], ["میز عسلی", "عدد", 3, "انبار مرکزی"], ["آچار یکسر رینگی 32", "عدد", 12, "انبار مرکزی"], ["صفحه سنگ6*180", "عدد", 200, "انبار مرکزی"], ["صفحه سنگ 3*180", "عدد", 2, "انبار مرکزی"], ["چکش کربن 3 کیلویی", "عدد", 5, "انبار مرکزی"], ["چسب زیپر", "عدد", 12, "انبار مرکزی"], ["آچار یکسر رینگی 60", "عدد", 3, "انبار مرکزی"], ["آچار یکسر رینگی 36", "عدد", 9, "انبار مرکزی"], ["آچار یکسر رینگی 35", "عدد", 3, "انبار مرکزی"], ["آچار یکسر رینگی 41", "عدد", 7, "انبار مرکزی"], ["آچار فرانسه 18", "عدد", 5, "انبار مرکزی"], ["آچار فرانسه 15", "عدد", 3, "انبار مرکزی"], ["آچار یکسر رینگی 34", "عدد", 5, "انبار مرکزی"], ["آچار یکسر رینگی 24", "عدد", 2, "انبار مرکزی"], ["آچار رینگی 23-21", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 19", "عدد", 1, "انبار مرکزی"], ["آچار فرانسه 24", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 22", "عدد", 1, "انبار مرکزی"], ["آچار یکسر رینگی 27", "عدد", 1, "انبار مرکزی"], ["پولی کش", "عدد", 2, "انبار مرکزی"], ["چسب پلی اورتان", "عدد", 1, "انبار مرکزی"], ["نوار تفلون", "بسته", 3, "انبار مرکزی"], ["آلن بزرگ", "عدد", 3, "انبار مرکزی"], ["چکش برنجی 2 کیلویی", "عدد", 1, "انبار مرکزی"], ["پیچ خودکار", "بسته", 1, "انبار مرکزی"], ["آچار چکشی کربن شماره 90", "عدد", 1, "انبار مرکزی"], ["چسب 123", "عدد", 1, "انبار مرکزی"], ["چسب برق", "عدد", 1, "انبار مرکزی"], ["پنبه رول 20 سانتی", "عدد", 40, "انبار مرکزی"], ["شگل 25 تن", "عدد", 4, "انبار مرکزی"], ["چسب 5 سانتی", "عدد", 3, "انبار مرکزی"], ["وایرشو سایز 10", "بسته", 2, "انبار مرکزی"], ["کاغذA5", "بسته", 4, "انبار مرکزی"], ["کاغذA4", "عدد", 1, "انبار مرکزی"], ["سیم چین آرماتوربندی", "عدد", 15, "انبار مرکزی"], ["تراز 30 سانتی", "عدد", 87, "انبار مرکزی"], ["سری نازل سندبلاست", "عدد", 4, "انبار مرکزی"], ["مشعل گاز", "عدد", 6, "انبار مرکزی"], ["گرمکن ویکتور", "عدد", 1, "انبار مرکزی"], ["طناب پلاستیکی", "متر", 60, "انبار مرکزی"], ["سه پایه دوربین نقشه برداری", "عدد", 2, "انبار مرکزی"], ["شیشه سفید جوشکاری", "عدد", 1000, "انبار مرکزی"], ["کمربند ایمنی", "عدد", 20, "کانتینر 12 متری"], ["شیشه عینک سنگ زنی", "عدد", 1000, "انبار مرکزی"], ["آچار T", "عدد", 13, "انبار مرکزی"], ["اتو", "دستگاه", 2, "انبار مرکزی"], ["اتو لوله کشی", "دستگاه", 1, "انبار مرکزی"], ["مته دریل مگنت الماس (سایزهای مختلف)", "عدد", 27, "انبار مرکزی"], ["مینی سنگ فرز", "دستگاه", 1, "انبار مرکزی"], ["ترک متر", "عدد", 6, "انبار مرکزی"], ["لاستیک فرغون", "عدد", 3, "انبار مرکزی"], ["آلن مچی", "ست", 1, "انبار مرکزی"], ["آژیر پلیسی", "عدد", 1, "انبار مرکزی"], ["قرقره بنائی", "عدد", 3, "انبار مرکزی"], ["دریل برقی", "دستگاه", 5, "انبار مرکزی"], ["پمپ آب (2 اسب)", "دستگاه", 3, "انبار مرکزی"], ["شیلنگ تورچ آرگون", "حلقه", 1, "انبار مرکزی"], ["بلت 6 متری 6 تن", "عدد", 4, "انبار مرکزی"], ["تراز30CM", "عدد", 2, "انبار مرکزی"], ["تراز20CM", "عدد", 80, "انبار مرکزی"], ["تراز50CM", "عدد", 1, "انبار مرکزی"], ["اره چوب بری", "عدد", 10, "انبار مرکزی"], ["قیچ ورق بری", "عدد", 12, "انبار مرکزی"], ["بلت 4 تن 6 متری", "عدد", 4, "انبار مرکزی"], ["شاخص دوربین نقشه برداری", "عدد", 2, "انبار مرکزی"], ["رینگ فرغون", "عدد", 1, "انبار مرکزی"], ["صفحه کاپر بزرگ", "عدد", 22, "انبار مرکزی"], ["سنگ ساب مینی", "عدد", 60, "انبار مرکزی"], ["انبرجوشکاری", "عدد", 5, "انبار مرکزی"], ["تفنگی چسب اکواریوم", "عدد", 10, "انبار مرکزی"], ["تفنگی دوقلوی هیلتی", "عدد", 2, "انبار مرکزی"], ["برس سیمی", "عدد", 40, "انبار مرکزی"], ["دریل شارژی", "دستگاه", 3, "انبار مرکزی"], ["سمبه نشان", "عدد", 3, "انبار مرکزی"], ["گونیا 30CM`", "عدد", 8, "انبار مرکزی"]];
+let S={items:SEED.map((r,i)=>({id:i+1,n:r[0],u:r[1],c:r[2],l:r[3]})),log:[],next:SEED.length+1},ref=null,edit=null;
+const $=s=>document.querySelector(s),LOW=2;
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const norm=s=>String(s).replace(/ي/g,'ی').replace(/ك/g,'ک').toLowerCase();
+function msg(t){$('#st').textContent=t}
+async function save(){
+ try{localStorage.setItem('inv',JSON.stringify(S))}catch(e){}
+ msg('ذخیره شد ✓')
+}
+function render(){
+ const q=norm($('#q').value.trim()),f=$('#f').value;
+ const a=S.items.filter(i=>(!q||norm(i.n).includes(q))&&(!f||i.c<=LOW));
+ $('#s1').textContent=fa(S.items.length);$('#s2').textContent=fa(S.items.filter(i=>i.c>0&&i.c<=LOW).length);$('#s3').textContent=fa(S.items.filter(i=>i.c<=0).length);
+ $('#list').innerHTML=a.map(i=>`<div class="it ${i.c<=LOW?'low':''}"><div class="nm">${esc(i.n)}<small>${esc(i.u)} · ${esc(i.l)}</small></div>
+ <button onclick="mv(${i.id},-1)">−</button><div class="qty">${fa(i.c)}</div><button onclick="mv(${i.id},1)">+</button><button onclick="ed(${i.id})">✎</button></div>`).join('')||'<p style="color:var(--mu)">موردی پیدا نشد.</p>';
+}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function mv(id,d){const i=S.items.find(x=>x.id==id);const t=prompt(d>0?'تعداد ورودی به انبار:':'تعداد خروجی از انبار:','1');
+ const k=parseInt(t);if(!k||k<1)return;if(d<0&&k>i.c){alert('موجودی کافی نیست');return}
+ i.c+=d*k;S.log.unshift({t:new Date().toLocaleString('fa-IR'),n:i.n,d:d*k});S.log=S.log.slice(0,100);save();render()}
+function ed(id){edit=id?S.items.find(x=>x.id==id):null;$('#dt').textContent=edit?'ویرایش کالا':'کالای جدید';
+ $('#n').value=edit?edit.n:'';$('#u').value=edit?edit.u:'عدد';$('#c').value=edit?edit.c:0;$('#l').value=edit?edit.l:'انبار مرکزی';$('#del').style.display=edit?'':'none';$('#dlg').showModal()}
+$('#add').onclick=()=>ed(0);
+$('#fm').onsubmit=e=>{if(e.submitter?.value!=='ok')return;const n=$('#n').value.trim();if(!n){e.preventDefault();return}
+ const v={n,u:$('#u').value.trim(),c:Math.max(0,parseInt($('#c').value)||0),l:$('#l').value.trim()};
+ if(edit)Object.assign(edit,v);else S.items.unshift({id:S.next++,...v});save();render()};
+$('#del').onclick=()=>{if(edit&&confirm('این کالا حذف شود؟')){S.items=S.items.filter(x=>x!==edit);save();render();$('#dlg').close()}};
+$('#log').onclick=()=>{$('#lb').innerHTML='<b>آخرین ورود و خروج‌ها</b>'+(S.log.map(l=>`<div class="log">${esc(l.n)} — ${l.d>0?'ورود +':'خروج −'}${fa(Math.abs(l.d))}<br>${esc(l.t)}</div>`).join('')||'<p>هنوز چیزی ثبت نشده.</p>');$('#ld').showModal()};
+$('#csv').onclick=async()=>{const rows=[['نام کالا','واحد','تعداد','موقعیت'],...S.items.map(i=>[i.n,i.u,i.c,i.l])];
+ const data='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv'}));a.download='موجودی_انبار.csv';document.body.appendChild(a);a.click();a.remove();msg('فایل CSV ذخیره شد ✓')};
+$('#q').oninput=$('#f').onchange=render;
+(async()=>{
+ try{const l=JSON.parse(localStorage.getItem('inv')||'null');if(l&&l.items)S=l}catch(e){}
+ render();
+})();
+</script></body></html>
